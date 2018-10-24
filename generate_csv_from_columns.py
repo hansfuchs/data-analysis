@@ -1,37 +1,33 @@
-import os
 import pandas as pd
-
-
-def get_root_path():
-    path_list = os.path.realpath(__file__).split("\\")
-    return '\\'.join(path_list[:len(path_list)-1], )
+import config.enums as e
 
 
 def generate_csv_from_columns(root_path, file_list, column_list):
-    dir_to_look_in = "\\Kunde1\\"
-
-    file_list = (file + ".unl" for file in file_list)
     data_frame_list = []
 
     for file in file_list:
         for column in column_list:
-            curr_file = pd.read_csv(root_path + dir_to_look_in + file,
+            curr_file = pd.read_csv(root_path +
+                                    e.FileDetails.DIR_TO_LOOK_IN.value +
+                                    file + e.FileDetails.SUFFIX.value,
                                     sep='|',
                                     low_memory=False)
-            data_frame_list.append(pd.DataFrame(curr_file[column]))
+            df = pd.DataFrame(curr_file[column])
 
+            if "$COLUMNS$" in column:
+                sub_arr = column.split("$COLUMNS$")
+                column_list[column_list.index(column)] = sub_arr[-1]
+                df[sub_arr[-1]] = df.pop(column)
+
+            data_frame_list.append(df)
         data_frame = pd.concat(data_frame_list)
-        with open(file + "_cols_" + '_'.join(col for col in column_list) + ".csv", "w+") as output:
+
+        generated_filename = file + "_cols_" + '-'.join(col for col in column_list) + ".csv"
+        with open(generated_filename, "w+") as output:
             output.write(pd.DataFrame.to_csv(data_frame))
 
 
 if __name__ == "__main__":
-    fileList = [
-        "a_ereignis_01"
-    ]
-    columnList = [
-        "$COLUMNS$MASCH_NR"
-    ]
-    ROOT_PATH = get_root_path()
-    print(ROOT_PATH)
-    generate_csv_from_columns(ROOT_PATH, fileList, columnList)
+    generate_csv_from_columns(e.SystemDetails.ROOT_PATH.value,
+                              e.CsvGeneratorParameters.FILE_LIST.value,
+                              e.CsvGeneratorParameters.COLUMN_LIST.value)
