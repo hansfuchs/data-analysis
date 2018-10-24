@@ -7,7 +7,7 @@ class SystemDetails(Enum):
 
 
 class FileDetails(Enum):
-    DIR_TO_LOOK_IN = "\\Kunde1\\"
+    DIR_TO_LOOK_IN = SystemDetails.ROOT_PATH.value + "\\Kunde1\\"
     SUFFIX = ".unl"
 
 

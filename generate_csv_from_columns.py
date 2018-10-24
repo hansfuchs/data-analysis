@@ -2,13 +2,12 @@ import pandas as pd
 import config.enums as e
 
 
-def generate_csv_from_columns(root_path, file_list, column_list):
+def generate_csv_from_columns(file_list, column_list):
     data_frame_list = []
 
     for file in file_list:
         for column in column_list:
-            curr_file = pd.read_csv(root_path +
-                                    e.FileDetails.DIR_TO_LOOK_IN.value +
+            curr_file = pd.read_csv(e.FileDetails.DIR_TO_LOOK_IN.value +
                                     file + e.FileDetails.SUFFIX.value,
                                     sep='|',
                                     low_memory=False)
@@ -28,6 +27,5 @@ def generate_csv_from_columns(root_path, file_list, column_list):
 
 
 if __name__ == "__main__":
-    generate_csv_from_columns(e.SystemDetails.ROOT_PATH.value,
-                              e.CsvGeneratorParameters.FILE_LIST.value,
+    generate_csv_from_columns(e.CsvGeneratorParameters.FILE_LIST.value,
                               e.CsvGeneratorParameters.COLUMN_LIST.value)
