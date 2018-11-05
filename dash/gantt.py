@@ -2,9 +2,8 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
-import plotly.graph_objs as go
 import plotly.figure_factory as ff
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -56,28 +55,12 @@ app.layout = html.Div([
                 id='dropdown_machines',
                 options=[{'label': i, 'value': i} for i in unique_machines],
                 value=unique_machines[0],
-                multi=True
+                multi=False
             )],),
     ]),
-    #dcc.Graph(id='gantt')
+    dcc.Graph(id='gantt')
 ])
 
-
-
-'''
-fig = ff.create_gantt(
-    df,
-    index_col='Task',
-    title='Daily Schedule',
-    colors=colors,
-    show_colorbar=True,
-    showgrid_x=True,
-    showgrid_y=True)
-
-app.layout = html.Div([
-    
-])
-'''
 
 @app.callback(
     Output('gantt', 'figure'),
@@ -85,22 +68,22 @@ app.layout = html.Div([
 )
 def update_gantt(dropdown_machines):
     machine_df, colors = [], []
-    for row in df:
-        if row.MASCH_NR == dropdown_machines:
+    for index, row in df.iterrows():
+        if row['MASCH_NR'] == dropdown_machines:
             entry = {
-                'Task': row.STOERTXT_NR,
-                'Start': row.BEGIN_DAT + row.BEGIN_ZEIT,
-                'Finished': row.BEGIN_DAT + row.ENDE_ZEIT
+                'Task': row['STOERTXT_NR'],
+                'Start': row['BEGIN_DAT'] + ' ' + row['BEGIN_ZEIT'],
+                'Finish': row['BEGIN_DAT'] + ' ' + row['ENDE_ZEIT']
             }
             machine_df.append(entry)
 
-        if empty(colors):
+    print(machine_df)
 
     return ff.create_gantt(
         machine_df,
         index_col='Task',
         title='Daily Schedule',
-        colors=colors,
+        colors=['#333F44', '#93e4c1'],
         show_colorbar=True,
         showgrid_x=True,
         showgrid_y=True
@@ -108,5 +91,5 @@ def update_gantt(dropdown_machines):
 
 
 if __name__ == '__main__':
-    # app.run_server()
+    app.run_server()
     print(df['BEGIN_DAT'])
