@@ -99,7 +99,8 @@ def create_gantt_graphs(dropdown_machines):
                     colors=['#333F44', '#93e4c1'],
                     show_colorbar=True,
                     showgrid_x=True,
-                    showgrid_y=True
+                    showgrid_y=True,
+                    group_tasks=True
                 )
                 gantt_graphs.append(dcc.Graph(id='graph_' + machine, figure=graph))
     return html.Div(
