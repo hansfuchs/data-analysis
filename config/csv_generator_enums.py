@@ -18,7 +18,9 @@ class Constants(Enum):
     COLUMN_LIST = [
         "$COLUMNS$MASCH_NR",
         "BEGIN_ZEIT",
-        "ENDE_ZEIT"
+        "BEGIN_DAT",
+        "ENDE_ZEIT",
+        "STOERTXT_NR"
     ]
     NUMBER_OF_LINES_TO_READ = 100
     NUMBER_OF_LINES_TO_SKIP = 0
