@@ -1,16 +1,12 @@
 from CsvGenerator import CsvGenerator
-import config.csv_generator_enums as e
 
 
 def main():
-
     csv_generator = CsvGenerator(
         "07/24/2013",
-        "",
-        e.Constants.DIR_TO_LOOK_IN,
-        e.Constants.FILE_LIST,
-        e.Constants.COLUMN_LIST
+        "30"
     )
+    csv_generator.generate_csv_from_columns(0, 20)
 
 
 if __name__ == "__main__":
