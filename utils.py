@@ -1,9 +1,10 @@
+import datetime
 from os import listdir
 from os.path import isfile, join
-import datetime
+from typing import List
 
 
-def get_files_of_dir(directory):
+def get_files_of_dir(directory: str) -> List[str]:
     return [file for file in listdir(directory) if isfile(join(directory, file))]
 
 
