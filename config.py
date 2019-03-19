@@ -1,5 +1,4 @@
-from os import listdir
-from os.path import isfile, join, realpath
+from os.path import join, realpath
 
 
 class Constants:
@@ -8,12 +7,14 @@ class Constants:
         self.PATH_ROOT = '\\'.join(self.__PATH_LIST[:len(self.__PATH_LIST) - 1], )
 
         self.DIR_BASE_FILES = join(self.PATH_ROOT, "test_events")
-        self.DIR_GENERATED_FILES = join(self.PATH_ROOT, "generated_csvs")
-        self.FILE_LIST = [file for file in listdir(self.DIR_BASE_FILES) if isfile(join(self.DIR_BASE_FILES, file))]
+        self.DIR_PREPARED_CSVS = join(self.PATH_ROOT, "prepared_csvs")
+        self.DIR_MACHINE_CSVS = join(self.PATH_ROOT, "machine_csvs")
 
         self.COLUMN_LIST = [
             "$COLUMNS$MASCH_NR",
             "BEGIN_ZEIT",
             "BEGIN_DAT",
             "ENDE_ZEIT",
+            #"STOER_TEXT"
         ]
+        self.COLUMN_NAME_OF_MACHINE_NR = "$COLUMNS$MASCH_NR"
