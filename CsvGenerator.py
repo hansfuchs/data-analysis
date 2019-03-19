@@ -1,7 +1,8 @@
+import datetime
 from os import mkdir
 from os.path import exists, join
 import pandas as pd
-from typing import List
+from typing import Dict, List
 
 import config
 import utils
@@ -10,8 +11,8 @@ import utils
 class CsvGenerator:
 
     def __init__(self):
-        self.const = config.Constants()
-        self.base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
+        self.const: config.Constants = config.Constants()
+        self.base_files: List[str] = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
 
         self.__prepare_environment()
 
@@ -32,36 +33,39 @@ class CsvGenerator:
             start_date: str,
             num_of_days: int
     ):
-        date = utils.string_to_date(start_date)
-        generated_files = utils.get_files_of_dir(self.const.DIR_PREPARED_CSVS)
+        date: datetime.datetime = utils.string_to_date(start_date)
+        generated_files: List[str] = utils.get_files_of_dir(self.const.DIR_PREPARED_CSVS)
 
-        """ for each file create df for each machine_nr
-            might be better than vice versa
-        """
-        for machine_nr in machine_list:
-            df_list = []
-            index_counter = 0
+        # initialise dict with empty lists for each machine_nr
+        machine_dict: Dict[str, List[pd.DataFrame]] = {}
+        for machine_nr in machine_list:  # type: str
+            machine_dict[machine_nr] = []
 
-            for file in generated_files:
-                curr_df = pd.read_csv(
-                    join(self.const.DIR_PREPARED_CSVS, file),
-                    sep=',',
-                    low_memory=False,
-                )
+        for file in generated_files:  # type: str
+            curr_df: pd.DataFrame = pd.read_csv(
+                join(self.const.DIR_PREPARED_CSVS, file),
+                sep=',',
+                low_memory=False,
+            )
+            for machine_nr in machine_list:  # type: str
+                index_counter: int = 0
+                if machine_dict[machine_nr]:
+                    # set index_counter to last given index value + 1
+                    index_counter = len(machine_dict[machine_nr][-1].index)
 
-                machine_df = curr_df.loc[curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR] == machine_nr]
-
+                machine_df: pd.DataFrame = curr_df.loc[
+                    curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR] == machine_nr
+                ]
                 if not machine_df.empty:
                     # remove "unnamed" column
                     machine_df = machine_df[[col for col in self.const.COLUMN_LIST]]
-                    machine_df.index = [i for i in range(index_counter, index_counter + len(machine_df.index))]
+                    # set index continuing the previous df's index
+                    machine_df.index = list(
+                        range(index_counter, index_counter + len(machine_df.index))
+                    )
+                    machine_dict[machine_nr].append(machine_df)
 
-                    df_list.append(machine_df)
-                    """ index_counter is set to its last value + the length of
-                        the current machine dataframe to avoid duplicate indices
-                    """
-                    index_counter = len(machine_df.index)
-
+        for machine_nr in machine_dict:  # type: str
             filename = join(
                 self.const.DIR_MACHINE_CSVS,
                 "{}_{}_days_{}.csv".format(
@@ -71,7 +75,7 @@ class CsvGenerator:
                 )
             )
             with open(filename, "w+") as output:
-                output.write(pd.concat(df_list).to_csv())
+                output.write(pd.concat(machine_dict[machine_nr]).to_csv())
 
     def generate_csv_from_columns(self, rows_to_skip: int, rows_to_read: int):
         base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
