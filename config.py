@@ -1,6 +1,7 @@
 from os.path import join, realpath
 from typing import List
 
+
 class Constants:
     def __init__(self):
         self.__PATH_LIST: str = realpath(__file__).split("\\")
