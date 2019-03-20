@@ -17,9 +17,9 @@ def string_to_date(date_string: str) -> datetime.datetime:
     )
 
 
-def date_to_string(date: datetime.datetime) -> str:
-    return "{}-{}-{}".format(
-        date.day,
-        date.month,
+def date_to_csv_friendly_str(date: datetime.datetime) -> str:
+    return "{}/{}/{}".format(
+        date.month if len(str(date.month)) == 2 else "0" + str(date.month),
+        date.day if len(str(date.day)) == 2 else "0" + str(date.day),
         date.year
     )
