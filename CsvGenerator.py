@@ -26,16 +26,15 @@ class CsvGenerator:
         if not exists(self.const.DIR_MACHINE_CSVS):
             mkdir(self.const.DIR_MACHINE_CSVS)
 
-    """
-    requires generate_csv_from_columns to be executed beforehand
-    since otherwise there would be no generated files
-    """
     def generate_csvs_of_machine_entries(
             self,
             machine_list: List[str],
             start_date: str,
             num_of_days: int
     ):
+        """ requires generate_csv_from_columns to be executed beforehand
+            since otherwise there would be no generated files
+        """
         date: datetime.datetime = utils.string_to_date(start_date)
         date_str_list: List[str] = [
             utils.date_to_csv_friendly_str(date + datetime.timedelta(days=x)) for x in range(0, num_of_days)
@@ -150,10 +149,10 @@ class CsvGenerator:
 
             print("\tdone!")
 
-    ''' 1) extract all unique machine_nrs from a machine series csv
-        2) extract only entries with status code 2
-    '''
     def generate_csvs_from_unique_machines(self):
+        """ 1) extract all unique machine_nrs from a machine series csv
+            2) extract only entries with status code 2
+        """
         machine_series_files: List[str] = utils.get_files_of_dir(self.const.DIR_MACHINE_SERIES_CSVS)
         for file in machine_series_files:
             curr_df: pd.DataFrame = pd.read_csv(
