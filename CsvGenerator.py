@@ -4,14 +4,14 @@ from os.path import exists, join
 import pandas as pd
 from typing import Dict, List, Set
 
-import config
+from config import Constants
 import utils
 
 
 class CsvGenerator:
 
     def __init__(self):
-        self.const: config.Constants = config.Constants()
+        self.const: Constants = Constants()
         self.base_files: List[str] = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
 
         self.__prepare_environment()
@@ -19,6 +19,9 @@ class CsvGenerator:
     def __prepare_environment(self):
         if not exists(self.const.DIR_PREPARED_CSVS):
             mkdir(self.const.DIR_PREPARED_CSVS)
+
+        if not exists(self.const.DIR_MACHINE_SERIES_CSVS):
+            mkdir(self.const.DIR_MACHINE_SERIES_CSVS)
 
         if not exists(self.const.DIR_MACHINE_CSVS):
             mkdir(self.const.DIR_MACHINE_CSVS)
@@ -67,13 +70,13 @@ class CsvGenerator:
                     index_counter = len(machine_dict[machine_nr][-1].index)
 
                 machine_df: pd.DataFrame = curr_df.loc[
-                    (curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR] == machine_nr)
+                    (curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR].str.startswith(machine_nr))
                     & (curr_df[self.const.COLUMN_NAME_OF_DATE].isin(date_str_list))
                 ]
 
                 if not machine_df.empty:
                     # remove "unnamed" column
-                    machine_df = machine_df[[col for col in self.const.COLUMN_LIST]]
+                    machine_df = self.clean_df(machine_df)
                     # set index continuing the previous df's index
                     machine_df.index = list(
                         range(index_counter, index_counter + len(machine_df.index))
@@ -91,8 +94,8 @@ class CsvGenerator:
             date_string_list: List[str]
     ):
         for machine_nr in machine_dict:  # type: str
-            filename = join(
-                self.const.DIR_MACHINE_CSVS,
+            filename: str = join(
+                self.const.DIR_MACHINE_SERIES_CSVS,
                 "{}_{}_until_{}.csv".format(
                     machine_nr,
                     date_string_list[0].replace("/", "."),
@@ -146,3 +149,42 @@ class CsvGenerator:
                 output.write(data_frame.to_csv())
 
             print("\tdone!")
+
+    ''' 1) extract all unique machine_nrs from a machine series csv
+        2) extract only entries with status code 2
+    '''
+    def generate_csvs_from_unique_machines(self):
+        machine_series_files: List[str] = utils.get_files_of_dir(self.const.DIR_MACHINE_SERIES_CSVS)
+        for file in machine_series_files:
+            curr_df: pd.DataFrame = pd.read_csv(
+                join(self.const.DIR_MACHINE_SERIES_CSVS, file),
+                sep=',',
+                low_memory=False
+            )
+
+            machine_nr_set: Set[str] = set(curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR])
+            for machine_nr in machine_nr_set:
+                machine_df: pd.DataFrame = curr_df.loc[
+                    (curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR] == machine_nr)
+                ]
+                machine_df = self.clean_df(machine_df)
+                machine_df.index = list(
+                    range(0, len(machine_df.index))
+                )
+
+                filename = join(
+                    self.const.DIR_MACHINE_CSVS,
+                    "{}_{}".format(
+                        machine_nr,
+                        "_".join(file.split("_")[1:])
+                    )
+                )
+                with open(filename, "w+") as output:
+                    output.write(machine_df.to_csv())
+
+    def clean_df(
+            self,
+            df: pd.DataFrame
+    ) -> pd.DataFrame:
+        # remove column "unnamed"
+        return df[[col for col in self.const.COLUMN_LIST]]
