@@ -58,7 +58,7 @@ class CsvGenerator:
             )
 
             # return early if current csv doesn't contain any date in date_str_list
-            curr_df_dates: Set[str] = set(curr_df[self.const.COLUMN_NAME_OF_DATE].values)
+            curr_df_dates: Set[str] = set(curr_df[self.const.COLUMN_DATE].values)
             if True not in [date_str in curr_df_dates for date_str in date_str_list]:
                 print("{} doesn't contain entries inside date range. skipping.".format(file))
                 continue
@@ -70,8 +70,8 @@ class CsvGenerator:
                     index_counter = len(machine_dict[machine_nr][-1].index)
 
                 machine_df: pd.DataFrame = curr_df.loc[
-                    (curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR].str.startswith(machine_nr))
-                    & (curr_df[self.const.COLUMN_NAME_OF_DATE].isin(date_str_list))
+                    (curr_df[self.const.COLUMN_MACHINE_NR].str.startswith(machine_nr))
+                    & (curr_df[self.const.COLUMN_DATE].isin(date_str_list))
                 ]
 
                 if not machine_df.empty:
@@ -162,10 +162,11 @@ class CsvGenerator:
                 low_memory=False
             )
 
-            machine_nr_set: Set[str] = set(curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR])
+            machine_nr_set: Set[str] = set(curr_df[self.const.COLUMN_MACHINE_NR])
             for machine_nr in machine_nr_set:
                 machine_df: pd.DataFrame = curr_df.loc[
-                    (curr_df[self.const.COLUMN_NAME_OF_MACHINE_NR] == machine_nr)
+                    (curr_df[self.const.COLUMN_MACHINE_NR] == machine_nr)
+                    & (curr_df[self.const.COLUMN_STATUS_CODE] == 2)
                 ]
                 machine_df = self.clean_df(machine_df)
                 machine_df.index = list(

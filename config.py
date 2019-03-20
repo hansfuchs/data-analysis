@@ -19,5 +19,6 @@ class Constants:
             "ENDE_ZEIT",
             "STOERTXT_NR"
         ]
-        self.COLUMN_NAME_OF_MACHINE_NR: str = "$COLUMNS$MASCH_NR"
-        self.COLUMN_NAME_OF_DATE: str = "BEGIN_DAT"
+        self.COLUMN_MACHINE_NR: str = "$COLUMNS$MASCH_NR"
+        self.COLUMN_DATE: str = "BEGIN_DAT"
+        self.COLUMN_STATUS_CODE: str = "STOERTXT_NR"
