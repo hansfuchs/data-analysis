@@ -165,7 +165,6 @@ class CsvGenerator:
             for machine_nr in machine_nr_set:
                 machine_df: pd.DataFrame = curr_df.loc[
                     (curr_df[self.const.COLUMN_MACHINE_NR] == machine_nr)
-                    & (curr_df[self.const.COLUMN_STATUS_CODE] == 2)
                 ]
                 machine_df = self.clean_df(machine_df)
                 machine_df.index = list(
