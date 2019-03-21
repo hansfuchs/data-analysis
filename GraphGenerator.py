@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List
+import pandas as pd
+from typing import List, Set
 
 from config import Constants
 from utils import get_files_of_dir
@@ -12,6 +13,12 @@ class GraphGenerator:
 
     def __init__(self):
         self.files: List[str] = get_files_of_dir(self.const.DIR_MACHINE_CSVS)
+
+    def get_x_values_of_df(
+            self,
+            df: pd.DataFrame
+    ) -> Set[int]:
+        pass
 
 
 if __name__ == "__main__":

@@ -23,3 +23,10 @@ def date_to_csv_friendly_str(date: datetime.datetime) -> str:
         date.day if len(str(date.day)) == 2 else "0" + str(date.day),
         date.year
     )
+
+
+def get_datetime_from_date_and_seconds(
+        seconds: str,
+        date: datetime.datetime
+) -> datetime.datetime:
+    return date + datetime.timedelta(seconds=float(seconds))
