@@ -152,6 +152,8 @@ class CsvGenerator:
     def generate_csvs_from_unique_machines(self):
         """ 1) extract all unique machine_nrs from a machine series csv
             2) extract only entries with status code 2 and the following entry
+            3) sort entries by date in ascending order
+            4) sort entries by time in ascending order
         """
         machine_series_files: List[str] = utils.get_files_of_dir(self.const.DIR_MACHINE_SERIES_CSVS)
         for file in machine_series_files:
@@ -183,6 +185,10 @@ class CsvGenerator:
                         indices.append(row.Index)
                 for index in indices:
                     machine_df = machine_df.drop(index)
+
+                # sort by date and time
+                machine_df[self.const.COLUMN_DATE] = pd.to_datetime(machine_df.BEGIN_DAT)
+                machine_df.sort_values(by=[self.const.COLUMN_DATE, 'BEGIN_ZEIT'])
 
                 filename = join(
                     self.const.DIR_MACHINE_CSVS,
