@@ -1,4 +1,5 @@
 from CsvGenerator import CsvGenerator
+from GraphGenerator import GraphGenerator
 
 
 def main():
@@ -18,6 +19,8 @@ def main():
     )
     """
     csv_generator.generate_csvs_from_unique_machines()
+
+    graph_generator: GraphGenerator = GraphGenerator()
 
 
 if __name__ == "__main__":
