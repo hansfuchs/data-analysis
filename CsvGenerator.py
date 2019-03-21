@@ -151,7 +151,7 @@ class CsvGenerator:
 
     def generate_csvs_from_unique_machines(self):
         """ 1) extract all unique machine_nrs from a machine series csv
-            2) extract only entries with status code 2
+            2) extract only entries with status code 2 and the following entry
         """
         machine_series_files: List[str] = utils.get_files_of_dir(self.const.DIR_MACHINE_SERIES_CSVS)
         for file in machine_series_files:
@@ -170,6 +170,19 @@ class CsvGenerator:
                 machine_df.index = list(
                     range(0, len(machine_df.index))
                 )
+
+                # remove all entries which are not preceded by an entry with status code 2
+                indices: List[int] = []
+                previous_row_had_status_code_2: bool = False
+                for row in machine_df.itertuples():
+                    if row.STOERTXT_NR == 2:
+                        previous_row_had_status_code_2 = True
+                    elif row.STOERTXT_NR != 2 and previous_row_had_status_code_2:
+                        previous_row_had_status_code_2 = False
+                    elif row.STOERTXT_NR != 2 and not previous_row_had_status_code_2:
+                        indices.append(row.Index)
+                for index in indices:
+                    machine_df = machine_df.drop(index)
 
                 filename = join(
                     self.const.DIR_MACHINE_CSVS,

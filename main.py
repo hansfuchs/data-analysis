@@ -20,6 +20,5 @@ def main():
     csv_generator.generate_csvs_from_unique_machines()
 
 
-
 if __name__ == "__main__":
     main()
