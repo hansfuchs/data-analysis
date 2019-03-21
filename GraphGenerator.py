@@ -1,10 +1,11 @@
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from typing import List, Set
+from typing import Dict, List, Set, Tuple
 
 from config import Constants
-from utils import get_files_of_dir
+from utils import get_files_of_dir, string_to_date
 
 
 class GraphGenerator:
@@ -17,8 +18,38 @@ class GraphGenerator:
     def get_x_values_of_df(
             self,
             df: pd.DataFrame
-    ) -> Set[int]:
-        pass
+    ) -> np.array:
+
+        # sorted set containing all of a df's dates in ascending order
+        dates: Set[datetime.datetime] = {
+            string_to_date(date) for date in df[self.const.COLUMN_DATE]
+        }
+        dates = sorted(dates)
+
+        value_dict: Dict[str, np.array] = {}
+        for date in dates:
+            value_dict[date.strftime('%d/%m/%Y')] = np.array([])
+
+        begin_seconds: int = 0
+        time_range_tuples: List[Tuple[int, int]] = []
+
+        previous_row_had_status_code_2: bool = False
+        for row in df.itertuples():
+            if row.STOERTXT_NR == 2 and not previous_row_had_status_code_2:
+                begin_seconds = row.BEGIN_ZEIT
+                previous_row_had_status_code_2 = True
+
+            elif row.STOERTXT_NR == 2 and previous_row_had_status_code_2:
+                begin_seconds = row.BEGIN_ZEIT
+
+            elif row.STOERTXT_NR != 2 and previous_row_had_status_code_2:
+                if begin_seconds >= row.BEGIN_ZEIT:
+                    # somehow the current entry happened BEFORE the previous? huh?
+                    print("whoopsie! entry {} happened BEFORE the previous".format(row.Index))
+                    return
+                time_range_tuples.append((begin_seconds, row.BEGIN_ZEIT))
+            # if neither status_code == 2 nor previous one, ignore entry
+
 
 
 if __name__ == "__main__":
