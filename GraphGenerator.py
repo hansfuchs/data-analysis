@@ -40,13 +40,15 @@ class GraphGenerator:
         time_range_tuples: List[Tuple[str, int, int]] = []
 
         previous_row_had_status_code_2: bool = False
+        previous_date: str = ''
         for row in df.itertuples():
             if row.STOERTXT_NR == 2 and not previous_row_had_status_code_2:
                 begin_seconds = row.BEGIN_ZEIT
                 previous_row_had_status_code_2 = True
+                previous_date = row.BEGIN_DAT
 
             elif row.STOERTXT_NR != 2 and previous_row_had_status_code_2:
-                if begin_seconds >= row.BEGIN_ZEIT:
+                if begin_seconds > row.BEGIN_ZEIT and previous_date == row.BEGIN_DAT:
                     # sorting error
                     print("SortingError: entry {} happened BEFORE the previous".format(row.Index))
                     return
