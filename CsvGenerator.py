@@ -163,7 +163,6 @@ class CsvGenerator:
                     (curr_df[self.const.COLUMN_MACHINE_NR] == machine_nr)
                 ]
                 machine_df = self.clean_df(machine_df)
-                machine_df = self.reset_index(machine_df)
 
                 # remove all entries which are not preceded by an entry with status code 2
                 indices: List[int] = []
@@ -183,6 +182,7 @@ class CsvGenerator:
                 machine_df = machine_df.sort_values(
                     by=['BEGIN_DAT', 'BEGIN_ZEIT']
                 )
+                machine_df = self.reset_index(machine_df)
 
                 filename = join(
                     self.const.DIR_MACHINE_CSVS,
