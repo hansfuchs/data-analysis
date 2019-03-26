@@ -17,10 +17,11 @@ def main():
         "07/24/2013",
         1
     )
-    """
     csv_generator.generate_csvs_from_unique_machines()
+    """
 
     graph_generator: GraphGenerator = GraphGenerator()
+    graph_generator.generate_plots()
 
 
 if __name__ == "__main__":

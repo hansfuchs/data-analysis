@@ -8,6 +8,7 @@ def get_files_of_dir(directory: str) -> List[str]:
     return [file for file in listdir(directory) if isfile(join(directory, file))]
 
 
+# mm/dd/YYYY
 def string_to_date(date_str: str) -> datetime.datetime:
     date_list: List[int] = [int(date) for date in date_str.split("/")]
     return datetime.datetime(
@@ -30,3 +31,13 @@ def get_datetime_from_date_and_seconds(
         date: datetime.datetime
 ) -> datetime.datetime:
     return date + datetime.timedelta(seconds=float(seconds))
+
+
+# YYYY-mm-dd
+def string_to_date2(date_str: str) -> datetime.datetime:
+    date_list: List[int] = [int(date) for date in date_str.split("-")]
+    return datetime.datetime(
+        date_list[0],
+        date_list[1],
+        date_list[2]
+    )

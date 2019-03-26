@@ -188,7 +188,9 @@ class CsvGenerator:
 
                 # sort by date and time
                 machine_df[self.const.COLUMN_DATE] = pd.to_datetime(machine_df.BEGIN_DAT)
-                machine_df.sort_values(by=[self.const.COLUMN_DATE, 'BEGIN_ZEIT'])
+                machine_df = machine_df.sort_values(
+                    by=['BEGIN_DAT', 'BEGIN_ZEIT']
+                )
 
                 filename = join(
                     self.const.DIR_MACHINE_CSVS,
