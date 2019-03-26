@@ -80,6 +80,7 @@ class GraphGenerator:
             )
 
             x_values: np.array = self.get_x_values_of_df(curr_df)
+            print(len(x_values))
 
             y_values: np.array = np.array(
                 [0 for x in range(0, len(x_values))]
@@ -95,7 +96,7 @@ class GraphGenerator:
 
             # set proper values for axes
             # xmin, xmax, ymin, ymax
-            # plt.axis([0, 10, 0, 20])
+            plt.axis([-50, len(x_values) + 50, -0.01, 0.01])
 
             # plt.xlabel('time (s)')
             # plt.ylabel('voltage (mV)')
@@ -103,10 +104,11 @@ class GraphGenerator:
             # plt.grid(True)
 
             plt.savefig(
-                join(self.const.DIR_PLOTS, file.replace('csv', 'svg')),
+                join(self.const.DIR_PLOTS, file.replace('csv', 'png')),
                 bbox_inches='tight',
-                format='svg'
+                format='png'
             )
+            plt.pause(0.05)
 
 
 
