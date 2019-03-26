@@ -26,7 +26,7 @@ class CsvGenerator:
         if not exists(self.const.DIR_MACHINE_CSVS):
             mkdir(self.const.DIR_MACHINE_CSVS)
 
-    def generate_csvs_of_machine_entries(
+    def generate_csvs_of_unique_machines(
             self,
             machine_list: List[str],
             start_date: str,
@@ -63,23 +63,14 @@ class CsvGenerator:
                 continue
 
             for machine_nr in machine_list:  # type: str
-                index_counter: int = 0
-                if machine_dict[machine_nr]:
-                    # set index_counter to last given index value + 1
-                    index_counter = len(machine_dict[machine_nr][-1].index)
-
                 machine_df: pd.DataFrame = curr_df.loc[
                     (curr_df[self.const.COLUMN_MACHINE_NR].str.startswith(machine_nr))
                     & (curr_df[self.const.COLUMN_DATE].isin(date_str_list))
                 ]
 
                 if not machine_df.empty:
-                    # remove "unnamed" column
                     machine_df = self.clean_df(machine_df)
-                    # set index continuing the previous df's index
-                    machine_df.index = list(
-                        range(index_counter, index_counter + len(machine_df.index))
-                    )
+                    machine_df = self.reset_index(machine_df)
                     machine_dict[machine_nr].append(machine_df)
 
             print("\tdone!")
@@ -102,7 +93,9 @@ class CsvGenerator:
                 )
             )
             with open(filename, "w+") as output:
-                output.write(pd.concat(machine_dict[machine_nr]).to_csv())
+                df: pd.DataFrame = pd.concat(machine_dict[machine_nr])
+                df = self.reset_index(df)
+                output.write(df.to_csv())
 
     def generate_csv_from_columns(
             self,
@@ -133,6 +126,7 @@ class CsvGenerator:
                 )
 
             data_frame = curr_df[[col for col in self.const.COLUMN_LIST]]
+            data_frame = self.reset_index(data_frame)
             '''
             for col in data_frame.columns:
                 if "$COLUMNS$" in col:
@@ -169,9 +163,7 @@ class CsvGenerator:
                     (curr_df[self.const.COLUMN_MACHINE_NR] == machine_nr)
                 ]
                 machine_df = self.clean_df(machine_df)
-                machine_df.index = list(
-                    range(0, len(machine_df.index))
-                )
+                machine_df = self.reset_index(machine_df)
 
                 # remove all entries which are not preceded by an entry with status code 2
                 indices: List[int] = []
@@ -208,3 +200,10 @@ class CsvGenerator:
     ) -> pd.DataFrame:
         # remove column "unnamed"
         return df[[col for col in self.const.COLUMN_LIST]]
+
+    def reset_index(
+            self,
+            df: pd.DataFrame
+    ) -> pd.DataFrame:
+        df.index = [x for x in range(0, len(df.index))]
+        return df
