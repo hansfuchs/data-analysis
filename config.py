@@ -17,7 +17,6 @@ class Constants:
             "$COLUMNS$MASCH_NR",
             "BEGIN_ZEIT",
             "BEGIN_DAT",
-            "ENDE_ZEIT",
             "STOERTXT_NR"
         ]
         self.COLUMN_MACHINE_NR: str = "$COLUMNS$MASCH_NR"
