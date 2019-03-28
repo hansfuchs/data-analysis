@@ -114,7 +114,6 @@ class GraphGenerator:
             x_values_and_missing_days: Tuple[List[int], List[str]] = self.get_x_values_of_df(curr_df)
             x_values: List[int] = x_values_and_missing_days[0]
             missing_days: List[str] = x_values_and_missing_days[1]
-            print(missing_days)
             missing_entries: List[int] = self.construct_missing_entries(missing_days)
 
             y_values: np.array = np.array(
@@ -124,7 +123,7 @@ class GraphGenerator:
             plt.plot(
                 x_values, y_values, 'b-',
                 missing_entries, y_values, 'r-',
-                lw=4
+                lw=2
             )
 
             plt.axis([-50, self.max_length + 50, -0.01, 0.01])
