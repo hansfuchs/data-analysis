@@ -182,6 +182,7 @@ class CsvGenerator:
                 machine_df = machine_df.sort_values(
                     by=['BEGIN_DAT', 'BEGIN_ZEIT']
                 )
+                machine_df = machine_df.drop_duplicates('BEGIN_ZEIT')
                 machine_df = self.reset_index(machine_df)
 
                 filename = join(
