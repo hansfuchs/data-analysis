@@ -5,10 +5,10 @@ from os.path import join, exists
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
 from config import Constants
-from utils import get_files_of_dir, string_to_date, string_to_date2
+from utils import get_files_of_dir, string_to_date
 
 
 class GraphGenerator:
@@ -123,10 +123,10 @@ class GraphGenerator:
             plt.plot(
                 x_values, y_values, 'b-',
                 missing_entries, y_values, 'r-',
-                lw=2
+                lw=4
             )
-
-            plt.axis([-50, self.max_length + 50, -0.01, 0.01])
+            plt.axis([-50, self.max_length + 50, -1, 1])
+            plt.xlabel('Zeit in s')
 
             plt.savefig(
                 join(self.const.DIR_PLOTS, file.replace('csv', 'png')),
