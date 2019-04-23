@@ -26,6 +26,52 @@ class CsvGenerator:
         if not exists(self.const.DIR_MACHINE_CSVS):
             mkdir(self.const.DIR_MACHINE_CSVS)
 
+    def generate_csv_from_columns(
+            self,
+            rows_to_skip: int,
+            rows_to_read: int = -1
+    ):
+        base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
+
+        for file in base_files:
+            print("generating csv from {} ...".format(file))
+
+            curr_df: pd.DataFrame = pd.DataFrame()
+            # means rows_to_read wasn't defined
+            if rows_to_read == -1:
+                curr_df = pd.read_csv(
+                    join(self.const.DIR_BASE_FILES, file),
+                    sep='|',
+                    low_memory=False,
+                    skiprows=rows_to_skip
+                )
+            else:
+                curr_df = pd.read_csv(
+                    join(self.const.DIR_BASE_FILES, file),
+                    sep='|',
+                    low_memory=False,
+                    skiprows=rows_to_skip,
+                    nrows=rows_to_read
+                )
+
+            data_frame = curr_df[[col for col in self.const.COL_LIST]]
+            data_frame = self.reset_index(data_frame)
+            '''
+            for col in data_frame.columns:
+                if "$COLUMNS$" in col:
+                    data_frame.rename(columns={col: col.split("$COLUMNS$")[-1]}, inplace=True)
+                    self.columns[self.columns.index(col)] = col.split("$COLUMNS$")[-1]
+            '''
+
+            generated_filename = '{}_cols_{}.csv'.format(
+                join(self.const.DIR_PREPARED_CSVS, file.split(".")[0]),
+                '-'.join(col for col in self.const.COL_LIST)
+            )
+            with open(generated_filename, "w+") as output:
+                output.write(data_frame.to_csv())
+
+            print("\tdone!")
+
     def generate_csvs_of_unique_machines(
             self,
             machine_list: List[str],
@@ -57,15 +103,15 @@ class CsvGenerator:
             )
 
             # return early if current csv doesn't contain any date in date_str_list
-            curr_df_dates: Set[str] = set(curr_df[self.const.COLUMN_DATE].values)
+            curr_df_dates: Set[str] = set(curr_df[self.const.COL_DATE].values)
             if True not in [date_str in curr_df_dates for date_str in date_str_list]:
                 print("{} doesn't contain entries inside date range. skipping.".format(file))
                 continue
 
             for machine_nr in machine_list:  # type: str
                 machine_df: pd.DataFrame = curr_df.loc[
-                    (curr_df[self.const.COLUMN_MACHINE_NR].str.startswith(machine_nr))
-                    & (curr_df[self.const.COLUMN_DATE].isin(date_str_list))
+                    (curr_df[self.const.COL_MACHINE_NR].str.startswith(machine_nr))
+                    & (curr_df[self.const.COL_DATE].isin(date_str_list))
                 ]
 
                 if not machine_df.empty:
@@ -75,21 +121,13 @@ class CsvGenerator:
 
             print("\tdone!")
 
-        self.create_csvs_from_machine_dict(machine_dict, date_str_list)
-        return
-
-    def create_csvs_from_machine_dict(
-            self,
-            machine_dict: Dict[str, List[pd.DataFrame]],
-            date_string_list: List[str]
-    ):
         for machine_nr in machine_dict:  # type: str
             filename: str = join(
                 self.const.DIR_MACHINE_SERIES_CSVS,
                 "{}_{}_until_{}.csv".format(
                     machine_nr,
-                    date_string_list[0].replace("/", "."),
-                    date_string_list[-1].replace("/", ".")
+                    date_str_list[0].replace("/", "."),
+                    date_str_list[-1].replace("/", ".")
                 )
             )
             with open(filename, "w+") as output:
@@ -97,59 +135,14 @@ class CsvGenerator:
                 df = self.reset_index(df)
                 output.write(df.to_csv())
 
-    def generate_csv_from_columns(
-            self,
-            rows_to_skip: int,
-            rows_to_read: int = -1
-    ):
-        base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
-
-        for file in base_files:
-            print("generating csv from {} ...".format(file))
-
-            curr_df: pd.DataFrame = pd.DataFrame()
-            # means rows_to_read wasn't defined
-            if rows_to_read == -1:
-                curr_df = pd.read_csv(
-                    join(self.const.DIR_BASE_FILES, file),
-                    sep='|',
-                    low_memory=False,
-                    skiprows=rows_to_skip
-                )
-            else:
-                curr_df = pd.read_csv(
-                    join(self.const.DIR_BASE_FILES, file),
-                    sep='|',
-                    low_memory=False,
-                    skiprows=rows_to_skip,
-                    nrows=rows_to_read
-                )
-
-            data_frame = curr_df[[col for col in self.const.COLUMN_LIST]]
-            data_frame = self.reset_index(data_frame)
-            '''
-            for col in data_frame.columns:
-                if "$COLUMNS$" in col:
-                    data_frame.rename(columns={col: col.split("$COLUMNS$")[-1]}, inplace=True)
-                    self.columns[self.columns.index(col)] = col.split("$COLUMNS$")[-1]
-            '''
-
-            generated_filename = '{}_cols_{}.csv'.format(
-                join(self.const.DIR_PREPARED_CSVS, file.split(".")[0]),
-                '-'.join(col for col in self.const.COLUMN_LIST)
-            )
-            with open(generated_filename, "w+") as output:
-                output.write(data_frame.to_csv())
-
-            print("\tdone!")
-
     def generate_csvs_from_unique_machines(self):
         """ 1) extract all unique machine_nrs from a machine series csv
-            2) extract only entries with status code 2 and the following entry
-            3) sort entries by date in ascending order
-            4) sort entries by time in ascending order
+            2) extract only entries with a status code in ALLOWED_STATUS_CODES and the entry immediately after
+            3) sort entries by date and time in ascending order
         """
         machine_series_files: List[str] = utils.get_files_of_dir(self.const.DIR_MACHINE_SERIES_CSVS)
+
+        # 1)
         for file in machine_series_files:
             curr_df: pd.DataFrame = pd.read_csv(
                 join(self.const.DIR_MACHINE_SERIES_CSVS, file),
@@ -157,32 +150,32 @@ class CsvGenerator:
                 low_memory=False
             )
 
-            machine_nr_set: Set[str] = set(curr_df[self.const.COLUMN_MACHINE_NR])
+            machine_nr_set: Set[str] = set(curr_df[self.const.COL_MACHINE_NR])
             for machine_nr in machine_nr_set:
                 machine_df: pd.DataFrame = curr_df.loc[
-                    (curr_df[self.const.COLUMN_MACHINE_NR] == machine_nr)
+                    (curr_df[self.const.COL_MACHINE_NR] == machine_nr)
                 ]
                 machine_df = self.clean_df(machine_df)
 
-                # remove all entries which are not preceded by an entry with status code 2
+                # 2)
                 indices: List[int] = []
-                previous_row_had_status_code_2: bool = False
+                prev_row_had_allowed_status: bool = False
                 for row in machine_df.itertuples():
-                    if row.STOERTXT_NR == 2:
-                        previous_row_had_status_code_2 = True
-                    elif row.STOERTXT_NR != 2 and previous_row_had_status_code_2:
-                        previous_row_had_status_code_2 = False
-                    elif row.STOERTXT_NR != 2 and not previous_row_had_status_code_2:
+                    if row.STOERTXT_NR in self.const.ALLOWED_STATUS_CODES:
+                        prev_row_had_allowed_status = True
+                    elif row.STOERTXT_NR not in self.const.ALLOWED_STATUS_CODES and prev_row_had_allowed_status:
+                        prev_row_had_allowed_status = False
+                    elif row.STOERTXT_NR not in self.const.ALLOWED_STATUS_CODES and not prev_row_had_allowed_status:
                         indices.append(row.Index)
                 for index in indices:
                     machine_df = machine_df.drop(index)
 
-                # sort by date and time
-                machine_df[self.const.COLUMN_DATE] = pd.to_datetime(machine_df.BEGIN_DAT)
+                # 3)
+                machine_df[self.const.COL_DATE] = pd.to_datetime(machine_df.BEGIN_DAT)
                 machine_df = machine_df.sort_values(
-                    by=['BEGIN_DAT', 'BEGIN_ZEIT']
+                    by=[self.const.COL_DATE, self.const.COL_TIME]
                 )
-                machine_df = machine_df.drop_duplicates('BEGIN_ZEIT')
+                machine_df = machine_df.drop_duplicates(self.const.COL_TIME)
                 machine_df = self.reset_index(machine_df)
 
                 filename = join(
@@ -200,7 +193,7 @@ class CsvGenerator:
             df: pd.DataFrame
     ) -> pd.DataFrame:
         # remove column "unnamed"
-        return df[[col for col in self.const.COLUMN_LIST]]
+        return df[[col for col in self.const.COL_LIST]]
 
     def reset_index(
             self,
