@@ -8,19 +8,13 @@ if __name__ == "__main__":
         rows_to_skip=0
     )
 
-    csv_generator.prepare_csvs()
+    #csv_generator.prepare_csvs()
 
-    # csv_generator.generate_csvs_of_unique_machines(
-    #     [
-    # group all entries in one csv that start with these patterns
-    #         "BFO4A",
-    # "WFL1",
-    # "BFL"
-    #     ],
+    csv_generator.generate_csvs_of_unique_machines(
     # mm/dd/yyyy
-    #     "07/24/2013",
-    #     14
-    # )
+        "07/24/2013",
+        14
+    )
 
     # csv_generator.generate_csvs_from_unique_machines()
 

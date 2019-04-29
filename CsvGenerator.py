@@ -25,7 +25,9 @@ class CsvGenerator:
         self.__prepare_environment()
         self.base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
 
-        self.df_list: List[Tuple[str, pd.DataFrame]] = []
+        self.unique_machines: List[str] = []
+        with open('unique_machines.txt', 'r+') as file:
+            self.unique_machines = file.read().split(',')
 
     def __prepare_environment(self):
         if not exists(self.const.DIR_PREPARED_CSVS):
@@ -83,7 +85,6 @@ class CsvGenerator:
 
     def generate_machine_series_csvs(
             self,
-            machine_list: List[str],
             start_date: str,
             num_of_days: int
     ):
@@ -99,7 +100,7 @@ class CsvGenerator:
 
         # initialise dict with empty lists for each machine_nr
         machine_dict: Dict[str, List[pd.DataFrame]] = {}
-        for machine_nr in machine_list:  # type: str
+        for machine_nr in self.unique_machines:  # type: str
             machine_dict[machine_nr] = []
 
         for file in generated_files:  # type: str
@@ -117,7 +118,7 @@ class CsvGenerator:
                 print("{} doesn't contain entries inside date range. skipping.".format(file))
                 continue
 
-            for machine_nr in machine_list:  # type: str
+            for machine_nr in self.unique_machines:  # type: str
                 machine_df: pd.DataFrame = curr_df.loc[
                     (curr_df[self.const.COL_MACHINE_NR].str.startswith(machine_nr))
                     & (curr_df[self.const.COL_DATE].isin(date_str_list))
