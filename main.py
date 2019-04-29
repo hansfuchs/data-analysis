@@ -27,7 +27,7 @@ def main():
     #graph_generator.generate_plots()
 
     data_gap_classifier: DataGapClassifier = DataGapClassifier("2013-07-24", 14)
-    data_gap_classifier.execute()
+    data_gap_classifier.extract_data_gaps()
 
 
 if __name__ == "__main__":
