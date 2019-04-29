@@ -1,3 +1,4 @@
+import multiprocessing as mp
 from os.path import join, realpath
 from typing import List
 
@@ -28,3 +29,5 @@ class Constants:
         self.COL_TIME: str = "BEGIN_ZEIT"
         self.COL_STATUS_CODE: str = "STOERTXT_NR"
         self.ALLOWED_STATUS_CODES: List[int] = list(range(1, 14))
+
+        self.CPU_COUNT: int = mp.cpu_count()

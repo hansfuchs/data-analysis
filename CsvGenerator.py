@@ -1,8 +1,9 @@
 import datetime
+import multiprocessing as mp
 from os import mkdir
 from os.path import exists, join
 import pandas as pd
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 from config import Constants
 import utils
@@ -10,11 +11,21 @@ import utils
 
 class CsvGenerator:
 
-    def __init__(self):
+    def __init__(
+            self,
+            rows_to_skip: int,
+            rows_to_read: int = -1
+    ):
+        self.rows_to_skip = rows_to_skip
+        self.rows_to_read = rows_to_read
+
         self.const: Constants = Constants()
         self.base_files: List[str] = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
 
         self.__prepare_environment()
+        self.base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
+
+        self.df_list: List[Tuple[str, pd.DataFrame]] = []
 
     def __prepare_environment(self):
         if not exists(self.const.DIR_PREPARED_CSVS):
@@ -26,53 +37,51 @@ class CsvGenerator:
         if not exists(self.const.DIR_MACHINE_CSVS):
             mkdir(self.const.DIR_MACHINE_CSVS)
 
-    def generate_csv_from_columns(
-            self,
-            rows_to_skip: int,
-            rows_to_read: int = -1
-    ):
-        base_files = utils.get_files_of_dir(self.const.DIR_BASE_FILES)
+    def generate_csv_from_columns(self, file: str):
+        print("generating csv from {} ...".format(file))
 
-        for file in base_files:
-            print("generating csv from {} ...".format(file))
-
-            curr_df: pd.DataFrame = pd.DataFrame()
-            # means rows_to_read wasn't defined
-            if rows_to_read == -1:
-                curr_df = pd.read_csv(
-                    join(self.const.DIR_BASE_FILES, file),
-                    sep='|',
-                    low_memory=False,
-                    skiprows=rows_to_skip
-                )
-            else:
-                curr_df = pd.read_csv(
-                    join(self.const.DIR_BASE_FILES, file),
-                    sep='|',
-                    low_memory=False,
-                    skiprows=rows_to_skip,
-                    nrows=rows_to_read
-                )
-
-            data_frame = curr_df[[col for col in self.const.COL_LIST]]
-            data_frame = self.reset_index(data_frame)
-            '''
-            for col in data_frame.columns:
-                if "$COLUMNS$" in col:
-                    data_frame.rename(columns={col: col.split("$COLUMNS$")[-1]}, inplace=True)
-                    self.columns[self.columns.index(col)] = col.split("$COLUMNS$")[-1]
-            '''
-
-            generated_filename = '{}_cols_{}.csv'.format(
-                join(self.const.DIR_PREPARED_CSVS, file.split(".")[0]),
-                '-'.join(col for col in self.const.COL_LIST)
+        curr_df: pd.DataFrame = pd.DataFrame()
+        # means rows_to_read wasn't defined
+        if self.rows_to_read == -1:
+            curr_df = pd.read_csv(
+                join(self.const.DIR_BASE_FILES, file),
+                sep='|',
+                low_memory=False,
+                skiprows=self.rows_to_skip
             )
-            with open(generated_filename, "w+") as output:
-                output.write(data_frame.to_csv())
+        else:
+            curr_df = pd.read_csv(
+                join(self.const.DIR_BASE_FILES, file),
+                sep='|',
+                low_memory=False,
+                skiprows=self.rows_to_skip,
+                nrows=self.rows_to_read
+            )
 
-            print("\tdone!")
+        data_frame = curr_df[[col for col in self.const.COL_LIST]]
+        data_frame = self.reset_index(data_frame)
 
-    def generate_csvs_of_unique_machines(
+        generated_filename = '{}_cols_{}.csv'.format(
+            join(self.const.DIR_PREPARED_CSVS, file.split(".")[0]),
+            '-'.join(col for col in self.const.COL_LIST)
+        )
+
+        print("\tdone!")
+        return generated_filename, data_frame
+
+    def prepare_csvs(self):
+        pool = mp.Pool(self.const.CPU_COUNT)
+        for file in self.base_files:
+            result = pool.apply_async(
+                func=self.generate_csv_from_columns,
+                args=(file,)
+            )
+            with open(result.get()[0], "w+") as output:
+                output.write(result.get()[1].to_csv())
+        pool.close()
+        pool.join()
+
+    def generate_machine_series_csvs(
             self,
             machine_list: List[str],
             start_date: str,
@@ -135,7 +144,7 @@ class CsvGenerator:
                 df = self.reset_index(df)
                 output.write(df.to_csv())
 
-    def generate_csvs_from_unique_machines(self):
+    def generate_machine_csvs(self):
         """ 1) extract all unique machine_nrs from a machine series csv
             2) extract only entries with a status code in ALLOWED_STATUS_CODES and the entry immediately after
             3) sort entries by date and time in ascending order
@@ -188,16 +197,10 @@ class CsvGenerator:
                 with open(filename, "w+") as output:
                     output.write(machine_df.to_csv())
 
-    def clean_df(
-            self,
-            df: pd.DataFrame
-    ) -> pd.DataFrame:
+    def clean_df(self, df: pd.DataFrame) -> pd.DataFrame:
         # remove column "unnamed"
         return df[[col for col in self.const.COL_LIST]]
 
-    def reset_index(
-            self,
-            df: pd.DataFrame
-    ) -> pd.DataFrame:
+    def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
         df.index = [x for x in range(0, len(df.index))]
         return df
