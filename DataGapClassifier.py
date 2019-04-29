@@ -33,7 +33,11 @@ class DataGapClassifier:
 
         if not exists(self.const.DIR_DATA_GAPS):
             mkdir(self.const.DIR_DATA_GAPS)
-        self.files: str = join(self.const.PATH_ROOT, self.const.DIR_DATA_GAPS)
+        self.data_gap_file: str = join(
+            self.const.PATH_ROOT,
+            self.const.DIR_DATA_GAPS,
+            self.const.FILE_DATA_GAPS
+        )
 
     def extract_data_gaps(self):
         data_dict: Dict[str, List[any]] = {
@@ -101,11 +105,5 @@ class DataGapClassifier:
                 temp_df: pd.DataFrame = df.loc[df[self.const.COL_DATE] == next_day.strftime('%Y-%m-%d')]
                 data_dict['NEXT_STATE'].append(temp_df.head(1)[self.const.COL_STATUS_CODE].values[0])
 
-        with open(join(self.const.DIR_DATA_GAPS, "data_gaps.csv"), "w+") as out_file:
+        with open(join(self.const.DIR_DATA_GAPS, self.const.FILE_DATA_GAPS), "w+") as out_file:
             out_file.write(pd.DataFrame(data=data_dict).to_csv())
-
-    def group_gaps(self):
-        df: pd.DataFrame = ""
-
-        for file in self.files:
-            pass
