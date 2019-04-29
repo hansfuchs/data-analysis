@@ -12,6 +12,9 @@ class Constants:
         self.DIR_MACHINE_SERIES_CSVS: str = join(self.PATH_ROOT, "machine_series_csvs")
         self.DIR_MACHINE_CSVS: str = join(self.PATH_ROOT, "machine_csvs")
         self.DIR_PLOTS: str = join(self.PATH_ROOT, 'plots')
+        self.DIR_DATA_GAPS: str = join(self.PATH_ROOT, 'data_gaps')
+
+        self.FILE_DATA_GAPS: str = 'data_gaps.csv'
 
         self.COL_LIST: List[str] = [
             "$COLUMNS$MASCH_NR",
