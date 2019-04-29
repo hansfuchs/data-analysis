@@ -28,6 +28,7 @@ def main():
 
     data_gap_classifier: DataGapClassifier = DataGapClassifier("2013-07-24", 14)
     data_gap_classifier.extract_data_gaps()
+    data_gap_classifier.group_gaps()
 
 
 if __name__ == "__main__":

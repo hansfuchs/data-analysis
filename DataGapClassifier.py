@@ -107,3 +107,44 @@ class DataGapClassifier:
 
         with open(join(self.const.DIR_DATA_GAPS, self.const.FILE_DATA_GAPS), "w+") as out_file:
             out_file.write(pd.DataFrame(data=data_dict).to_csv())
+
+    def group_by_prev_state(self, df: pd.DataFrame):
+        df = df.sort_values(by='PREV_STATE')
+        with open(join(
+                self.const.DIR_DATA_GAPS,
+                self.const.FILE_DATA_GAPS.replace('.', '_by_prev_state.')
+            ),
+            'w+'
+        ) as f:
+            f.write(df.to_csv())
+
+    def group_by_next_state(self, df: pd.DataFrame):
+        df = df.sort_values(by='NEXT_STATE')
+        with open(
+            join(
+                self.const.DIR_DATA_GAPS,
+                self.const.FILE_DATA_GAPS.replace('.', '_by_next_state.')
+            ),
+            'w+'
+        ) as f:
+            f.write(df.to_csv())
+
+    def group_by_prev_and_next_state(self, df: pd.DataFrame):
+        df = df.sort_values(by=['PREV_STATE', 'NEXT_STATE'])
+        with open(join(
+                self.const.DIR_DATA_GAPS,
+                self.const.FILE_DATA_GAPS.replace('.', '_by_prev_and_next_state.')
+            ),
+            'w+'
+        ) as f:
+            f.write(df.to_csv())
+
+    def group_gaps(self):
+        df: pd.DataFrame = pd.read_csv(
+            join(self.const.DIR_MACHINE_CSVS, self.data_gap_file),
+            sep=',',
+            low_memory=False
+        )
+        self.group_by_prev_state(df)
+        self.group_by_next_state(df)
+        self.group_by_prev_and_next_state(df)
