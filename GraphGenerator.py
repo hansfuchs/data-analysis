@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Dict, List, Set, Tuple
 
-from config import Constants
+from Config import Config
 from utils import get_files_of_dir, string_to_date, string_to_date2
 
 
 class GraphGenerator:
 
-    const: Constants = Constants()
+    const: Config = Config()
 
     def __init__(self, start_date, num_of_days):
         self.files: List[str] = get_files_of_dir(self.const.DIR_MACHINE_CSVS)

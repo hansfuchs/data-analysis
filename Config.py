@@ -1,8 +1,9 @@
+import multiprocessing as mp
 from os.path import join, realpath
 from typing import List
 
 
-class Constants:
+class Config:
     def __init__(self):
         self.__PATH_LIST: str = realpath(__file__).split("\\")
         self.PATH_ROOT: str = '\\'.join(self.__PATH_LIST[:len(self.__PATH_LIST) - 1], )
@@ -14,7 +15,12 @@ class Constants:
         self.DIR_PLOTS: str = join(self.PATH_ROOT, 'plots')
         self.DIR_DATA_GAPS: str = join(self.PATH_ROOT, 'data_gaps')
 
+        self.FILE_UNIQUE_MACHINES: str = 'unique_machines.txt'
         self.FILE_DATA_GAPS: str = 'data_gaps.csv'
+
+        self.UNIQUE_MACHINES: List[str] = []
+        with open(self.FILE_UNIQUE_MACHINES, 'r+') as file:
+            self.UNIQUE_MACHINES = file.read().split(',')
 
         self.COL_LIST: List[str] = [
             "$COLUMNS$MASCH_NR",
@@ -28,3 +34,5 @@ class Constants:
         self.COL_TIME: str = "BEGIN_ZEIT"
         self.COL_STATUS_CODE: str = "STOERTXT_NR"
         self.ALLOWED_STATUS_CODES: List[int] = list(range(1, 14))
+
+        self.CPU_COUNT: int = mp.cpu_count()
