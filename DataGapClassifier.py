@@ -5,13 +5,13 @@ from os.path import join, exists
 import pandas as pd
 from typing import List, Dict, Set
 
-from config import Constants
+from Config import Config
 from utils import get_files_of_dir, string_to_date2
 
 
 class DataGapClassifier:
 
-    const: Constants = Constants()
+    conf: Config = Config()
 
     def __init__(
             self,
@@ -19,7 +19,7 @@ class DataGapClassifier:
             num_of_days: int,
             gap_threshold: int = 1
     ):
-        self.machine_csvs: List[str] = get_files_of_dir(self.const.DIR_MACHINE_CSVS)
+        self.machine_csvs: List[str] = get_files_of_dir(self.conf.DIR_MACHINE_CSVS)
 
         self.start_date: datetime.datetime = string_to_date2(start_date)
         self.dates_as_date: List[datetime.datetime] = [
@@ -31,12 +31,12 @@ class DataGapClassifier:
         self.num_of_days: int = num_of_days
         self.gap_threshold: int = gap_threshold
 
-        if not exists(self.const.DIR_DATA_GAPS):
-            mkdir(self.const.DIR_DATA_GAPS)
+        if not exists(self.conf.DIR_DATA_GAPS):
+            mkdir(self.conf.DIR_DATA_GAPS)
         self.data_gap_file: str = join(
-            self.const.PATH_ROOT,
-            self.const.DIR_DATA_GAPS,
-            self.const.FILE_DATA_GAPS
+            self.conf.PATH_ROOT,
+            self.conf.DIR_DATA_GAPS,
+            self.conf.FILE_DATA_GAPS
         )
 
     def extract_data_gaps(self):
@@ -49,14 +49,14 @@ class DataGapClassifier:
         }
         for file in self.machine_csvs:     # type: str
             df: pd.DataFrame = pd.read_csv(
-                join(self.const.DIR_MACHINE_CSVS, file),
+                join(self.conf.DIR_MACHINE_CSVS, file),
                 sep=',',
                 low_memory=False
             )
 
             missing_days: List[str] = []
             for date in self.dates:     # type: str
-                if date not in df[self.const.COL_DATE].unique():
+                if date not in df[self.conf.COL_DATE].unique():
                     missing_days.append(date)
 
             for day in missing_days:    # type: str
@@ -78,13 +78,13 @@ class DataGapClassifier:
 
                 day_already_checked: bool = False
                 for machine, days in already_checked_days.items():
-                    if machine == df[self.const.COL_MACHINE_NR].values[0] and day in already_checked_days[machine]:
+                    if machine == df[self.conf.COL_MACHINE_NR].values[0] and day in already_checked_days[machine]:
                         day_already_checked = True
 
                 if day_already_checked:
                     continue
 
-                data_dict['MACHINE_NR'].append(df[self.const.COL_MACHINE_NR].values[0])
+                data_dict['MACHINE_NR'].append(df[self.conf.COL_MACHINE_NR].values[0])
                 data_dict['BEGIN_DATE'].append(day)
 
                 end_date: datetime.datetime = string_to_date2(day)
@@ -97,22 +97,22 @@ class DataGapClassifier:
 
                 prev_day: datetime.datetime = string_to_date2(day) - datetime.timedelta(days=1)
                 prev_day_str: str = prev_day.strftime('%Y-%m-%d')
-                if prev_day_str in df[self.const.COL_DATE].unique():
-                    temp_df: pd.DataFrame = df.loc[df[self.const.COL_DATE] == prev_day_str]
-                    data_dict['PREV_STATE'].append(temp_df.tail(1)[self.const.COL_STATUS_CODE].values[0])
+                if prev_day_str in df[self.conf.COL_DATE].unique():
+                    temp_df: pd.DataFrame = df.loc[df[self.conf.COL_DATE] == prev_day_str]
+                    data_dict['PREV_STATE'].append(temp_df.tail(1)[self.conf.COL_STATUS_CODE].values[0])
 
                 next_day: datetime.datetime = end_date + datetime.timedelta(days=1)
-                temp_df: pd.DataFrame = df.loc[df[self.const.COL_DATE] == next_day.strftime('%Y-%m-%d')]
-                data_dict['NEXT_STATE'].append(temp_df.head(1)[self.const.COL_STATUS_CODE].values[0])
+                temp_df: pd.DataFrame = df.loc[df[self.conf.COL_DATE] == next_day.strftime('%Y-%m-%d')]
+                data_dict['NEXT_STATE'].append(temp_df.head(1)[self.conf.COL_STATUS_CODE].values[0])
 
-        with open(join(self.const.DIR_DATA_GAPS, self.const.FILE_DATA_GAPS), "w+") as out_file:
+        with open(join(self.conf.DIR_DATA_GAPS, self.conf.FILE_DATA_GAPS), "w+") as out_file:
             out_file.write(pd.DataFrame(data=data_dict).to_csv())
 
     def group_by_prev_state(self, df: pd.DataFrame):
         df = df.sort_values(by='PREV_STATE')
         with open(join(
-                self.const.DIR_DATA_GAPS,
-                self.const.FILE_DATA_GAPS.replace('.', '_by_prev_state.')
+                self.conf.DIR_DATA_GAPS,
+                self.conf.FILE_DATA_GAPS.replace('.', '_by_prev_state.')
             ),
             'w+'
         ) as f:
@@ -122,8 +122,8 @@ class DataGapClassifier:
         df = df.sort_values(by='NEXT_STATE')
         with open(
             join(
-                self.const.DIR_DATA_GAPS,
-                self.const.FILE_DATA_GAPS.replace('.', '_by_next_state.')
+                self.conf.DIR_DATA_GAPS,
+                self.conf.FILE_DATA_GAPS.replace('.', '_by_next_state.')
             ),
             'w+'
         ) as f:
@@ -132,8 +132,8 @@ class DataGapClassifier:
     def group_by_prev_and_next_state(self, df: pd.DataFrame):
         df = df.sort_values(by=['PREV_STATE', 'NEXT_STATE'])
         with open(join(
-                self.const.DIR_DATA_GAPS,
-                self.const.FILE_DATA_GAPS.replace('.', '_by_prev_and_next_state.')
+                self.conf.DIR_DATA_GAPS,
+                self.conf.FILE_DATA_GAPS.replace('.', '_by_prev_and_next_state.')
             ),
             'w+'
         ) as f:
@@ -141,7 +141,7 @@ class DataGapClassifier:
 
     def group_gaps(self):
         df: pd.DataFrame = pd.read_csv(
-            join(self.const.DIR_MACHINE_CSVS, self.data_gap_file),
+            join(self.conf.DIR_MACHINE_CSVS, self.data_gap_file),
             sep=',',
             low_memory=False
         )

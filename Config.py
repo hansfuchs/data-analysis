@@ -15,7 +15,12 @@ class Config:
         self.DIR_PLOTS: str = join(self.PATH_ROOT, 'plots')
         self.DIR_DATA_GAPS: str = join(self.PATH_ROOT, 'data_gaps')
 
+        self.FILE_UNIQUE_MACHINES: str = 'unique_machines.txt'
         self.FILE_DATA_GAPS: str = 'data_gaps.csv'
+
+        self.UNIQUE_MACHINES: List[str] = []
+        with open(self.FILE_UNIQUE_MACHINES, 'r+') as file:
+            self.UNIQUE_MACHINES = file.read().split(',')
 
         self.COL_LIST: List[str] = [
             "$COLUMNS$MASCH_NR",
