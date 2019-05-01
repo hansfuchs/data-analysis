@@ -3,7 +3,7 @@ from os.path import join, realpath
 from typing import List
 
 
-class Constants:
+class Config:
     def __init__(self):
         self.__PATH_LIST: str = realpath(__file__).split("\\")
         self.PATH_ROOT: str = '\\'.join(self.__PATH_LIST[:len(self.__PATH_LIST) - 1], )
