@@ -3,7 +3,7 @@ from os import mkdir
 from os.path import join, exists
 
 import pandas as pd
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Tuple
 
 import CsvGenerator
 import utils
@@ -199,3 +199,96 @@ class DataGapClassifier:
 
         with open(join(self.conf.DIR_DATA_GAPS, self.conf.FILE_DATA_GAPS), "w+") as out_file:
             out_file.write(pd.DataFrame(data=data_dict).to_csv())
+
+    def evaluate_data_gaps(self):
+        files: List[Tuple[str, any]] = [
+            (self.conf.FILE_DATA_GAPS_BY_PREV, 'PREV_STATE'),
+            (self.conf.FILE_DATA_GAPS_BY_NEXT, 'NEXT_STATE'),
+        ]
+        for file in files:
+            df: pd.DataFrame = pd.read_csv(
+                join(self.conf.DIR_DATA_GAPS, file[0]),
+                delimiter=",",
+                low_memory=False
+            )
+            data_dict: Dict[str, any] = {
+                'STATE': [],
+                'TOTAL': [],
+                'MACHINES': [],
+                'SHORTEST_AMOUNT_OF_DAYS': [],
+                'LONGEST_AMOUNT_OF_DAYS': [],
+                'AVG_AMOUNT_OF_DAYS': []
+            }
+
+            unique_states: Set[any] = set()
+            unique_states = set(df[file[1]].values)
+
+            for state in unique_states:
+                temp_df: pd.DataFrame = pd.DataFrame()
+                data_dict['STATE'].append(state)
+                temp_df = df[df[file[1]] == state]
+
+                data_dict['TOTAL'].append(len(temp_df.index))
+                day_range: List[int] = []
+                machines: Set[str] = set()
+
+                for row in temp_df.itertuples():
+                    if row.MACHINE_NR not in machines:
+                        machines.add(row.MACHINE_NR)
+                    day_range.append(utils.get_amount_of_days(row.BEGIN_DATE, row.END_DATE))
+
+                data_dict['MACHINES'].append('-'.join(machines))
+                data_dict['SHORTEST_AMOUNT_OF_DAYS'].append(min(day_range))
+                data_dict['LONGEST_AMOUNT_OF_DAYS'].append(max(day_range))
+                data_dict['AVG_AMOUNT_OF_DAYS'].append(sum(day_range) / len(day_range))
+
+            with open(join(self.conf.DIR_DATA_GAPS, 'report_' + file[0]), 'w+') as report:
+                report.write(pd.DataFrame(data=data_dict).to_csv())
+
+    def evaluate_data_gaps2(self):
+        file: str = self.conf.FILE_DATA_GAPS_BY_PREV_AND_NEXT
+        columns: List[str] = ['PREV_STATE', 'NEXT_STATE']
+        df: pd.DataFrame = pd.read_csv(
+            join(self.conf.DIR_DATA_GAPS, file),
+            delimiter=",",
+            low_memory=False
+        )
+        data_dict: Dict[str, any] = {
+            'STATE': [],
+            'TOTAL': [],
+            'MACHINES': [],
+            'SHORTEST_AMOUNT_OF_DAYS': [],
+            'LONGEST_AMOUNT_OF_DAYS': [],
+            'AVG_AMOUNT_OF_DAYS': []
+        }
+        state_combinations: Set[Tuple[str, str]] = set()
+        for row in df.itertuples():
+            combination: Tuple[str, str] = (
+                str(row.PREV_STATE),
+                str(row.NEXT_STATE)
+            )
+            if combination not in state_combinations:
+                state_combinations.add(combination)
+
+        for combination in state_combinations:
+            data_dict['STATE'].append('-'.join(combination))
+            temp_df: pd.DataFrame = df[
+                (df[columns[0]] == int(combination[0])) &
+                (df[columns[1]] == int(combination[1]))
+            ]
+            data_dict['TOTAL'].append(len(temp_df.index))
+
+            day_range: List[int] = []
+            machines: Set[str] = set()
+            for row in temp_df.itertuples():
+                if row.MACHINE_NR not in machines:
+                    machines.add(row.MACHINE_NR)
+                day_range.append(utils.get_amount_of_days(row.BEGIN_DATE, row.END_DATE))
+
+            data_dict['MACHINES'].append('-'.join(machines))
+            data_dict['SHORTEST_AMOUNT_OF_DAYS'].append(min(day_range))
+            data_dict['LONGEST_AMOUNT_OF_DAYS'].append(max(day_range))
+            data_dict['AVG_AMOUNT_OF_DAYS'].append(sum(day_range) / len(day_range))
+
+        with open(join(self.conf.DIR_DATA_GAPS, 'report_' + file), 'w+') as report:
+            report.write(pd.DataFrame(data=data_dict).to_csv())

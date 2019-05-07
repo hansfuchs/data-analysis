@@ -21,5 +21,7 @@ if __name__ == "__main__":
 
     data_gap_classifier: DataGapClassifier = DataGapClassifier("2013-07-24", 696)
     #data_gap_classifier.extract_data_gaps()
-    data_gap_classifier.logger_to_csv()
-    data_gap_classifier.group_gaps()
+    #data_gap_classifier.logger_to_csv()
+    #data_gap_classifier.group_gaps()
+    data_gap_classifier.evaluate_data_gaps()
+    data_gap_classifier.evaluate_data_gaps2()
