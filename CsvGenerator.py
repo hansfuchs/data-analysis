@@ -180,9 +180,9 @@ class CsvGenerator:
                 # 3)
                 machine_df[self.conf.COL_DATE] = pd.to_datetime(machine_df.BEGIN_DAT)
                 machine_df = machine_df.sort_values(
-                    by=[self.conf.COL_DATE, self.conf.COL_TIME]
+                    by=[self.conf.COL_DATE, self.conf.COL_TIME_START]
                 )
-                machine_df = machine_df.drop_duplicates(self.conf.COL_TIME)
+                machine_df = machine_df.drop_duplicates(self.conf.COL_TIME_START)
                 machine_df = self.reset_index(machine_df)
 
                 filename = join(

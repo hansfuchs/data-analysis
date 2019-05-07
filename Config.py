@@ -26,17 +26,18 @@ class Config:
         with open(self.FILE_UNIQUE_MACHINES, 'r+') as file:
             self.UNIQUE_MACHINES = file.read().split(',')
 
-        self.COL_LIST: List[str] = [
-            "$COLUMNS$MASCH_NR",
-            "BEGIN_ZEIT",
-            "ENDE_ZEIT",
-            "BEGIN_DAT",
-            "STOERTXT_NR"
-        ]
         self.COL_MACHINE_NR: str = "$COLUMNS$MASCH_NR"
         self.COL_DATE: str = "BEGIN_DAT"
-        self.COL_TIME: str = "BEGIN_ZEIT"
+        self.COL_TIME_START: str = "BEGIN_ZEIT"
+        self.COL_TIME_STOP: str = "ENDE_ZEIT"
         self.COL_STATUS_CODE: str = "STOERTXT_NR"
         self.ALLOWED_STATUS_CODES: List[int] = list(range(1, 14))
+        self.COL_LIST: List[str] = [
+            self.COL_MACHINE_NR,
+            self.COL_DATE,
+            self.COL_TIME_START,
+            self.COL_TIME_STOP,
+            self.COL_STATUS_CODE
+        ]
 
         self.CPU_COUNT: int = mp.cpu_count()
