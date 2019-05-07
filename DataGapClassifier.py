@@ -5,6 +5,8 @@ from os.path import join, exists
 import pandas as pd
 from typing import List, Dict, Set
 
+import CsvGenerator
+import utils
 from Config import Config
 from utils import get_files_of_dir, string_to_date2
 
@@ -47,12 +49,16 @@ class DataGapClassifier:
             'PREV_STATE': [],
             'NEXT_STATE': []
         }
+        logger: List = []
         for file in self.machine_csvs:     # type: str
             df: pd.DataFrame = pd.read_csv(
                 join(self.conf.DIR_MACHINE_CSVS, file),
                 sep=',',
                 low_memory=False
             )
+            if df.empty:
+                continue
+            print(file)
 
             missing_days: List[str] = []
             for date in self.dates:     # type: str
@@ -99,11 +105,30 @@ class DataGapClassifier:
                 prev_day_str: str = prev_day.strftime('%Y-%m-%d')
                 if prev_day_str in df[self.conf.COL_DATE].unique():
                     temp_df: pd.DataFrame = df.loc[df[self.conf.COL_DATE] == prev_day_str]
-                    data_dict['PREV_STATE'].append(temp_df.tail(1)[self.conf.COL_STATUS_CODE].values[0])
+                    if list(temp_df.tail(1)[self.conf.COL_STATUS_CODE].values):
+                        data_dict['PREV_STATE'].append(temp_df.tail(1)[self.conf.COL_STATUS_CODE].values[0])
+                    else:
+                        data_dict['PREV_STATE'].append(0)
 
                 next_day: datetime.datetime = end_date + datetime.timedelta(days=1)
                 temp_df: pd.DataFrame = df.loc[df[self.conf.COL_DATE] == next_day.strftime('%Y-%m-%d')]
-                data_dict['NEXT_STATE'].append(temp_df.head(1)[self.conf.COL_STATUS_CODE].values[0])
+                if list(temp_df.head(1)[self.conf.COL_STATUS_CODE].values):
+                    data_dict['NEXT_STATE'].append(temp_df.head(1)[self.conf.COL_STATUS_CODE].values[0])
+                else:
+                    data_dict['NEXT_STATE'].append(0)
+                logger.append(
+                    '{}-{}-{}-{}-{}'.format(
+                        data_dict['MACHINE_NR'][-1],
+                        data_dict['BEGIN_DATE'][-1],
+                        data_dict['END_DATE'][-1],
+                        data_dict['PREV_STATE'][-1],
+                        data_dict['NEXT_STATE'][-1]
+                    )
+                )
+
+        with open("log.txt", "w+") as f:
+            for line in logger:
+                f.write(line + "\n")
 
         with open(join(self.conf.DIR_DATA_GAPS, self.conf.FILE_DATA_GAPS), "w+") as out_file:
             out_file.write(pd.DataFrame(data=data_dict).to_csv())
@@ -112,7 +137,7 @@ class DataGapClassifier:
         df = df.sort_values(by='PREV_STATE')
         with open(join(
                 self.conf.DIR_DATA_GAPS,
-                self.conf.FILE_DATA_GAPS.replace('.', '_by_prev_state.')
+                self.conf.FILE_DATA_GAPS_BY_PREV
             ),
             'w+'
         ) as f:
@@ -123,7 +148,7 @@ class DataGapClassifier:
         with open(
             join(
                 self.conf.DIR_DATA_GAPS,
-                self.conf.FILE_DATA_GAPS.replace('.', '_by_next_state.')
+                self.conf.FILE_DATA_GAPS_BY_NEXT
             ),
             'w+'
         ) as f:
@@ -133,7 +158,7 @@ class DataGapClassifier:
         df = df.sort_values(by=['PREV_STATE', 'NEXT_STATE'])
         with open(join(
                 self.conf.DIR_DATA_GAPS,
-                self.conf.FILE_DATA_GAPS.replace('.', '_by_prev_and_next_state.')
+                self.conf.FILE_DATA_GAPS_BY_PREV_AND_NEXT
             ),
             'w+'
         ) as f:
@@ -148,3 +173,23 @@ class DataGapClassifier:
         self.group_by_prev_state(df)
         self.group_by_next_state(df)
         self.group_by_prev_and_next_state(df)
+
+    def logger_to_csv(self):
+        data_dict: Dict[str, List[any]] = {
+            'MACHINE_NR': [],
+            'BEGIN_DATE': [],
+            'END_DATE': [],
+            'PREV_STATE': [],
+            'NEXT_STATE': []
+        }
+        with open('log.txt', 'r') as f:
+            for line in f:
+                line_list: List[str] = line.split('-')
+                data_dict['MACHINE_NR'].append(line_list[0])
+                data_dict['BEGIN_DATE'].append('{}-{}-{}'.format(line_list[1], line_list[2], line_list[3]))
+                data_dict['END_DATE'].append('{}-{}-{}'.format(line_list[4], line_list[5], line_list[6]))
+                data_dict['PREV_STATE'].append(line_list[7])
+                data_dict['NEXT_STATE'].append(line_list[8].rstrip("\n"))
+
+        with open(join(self.conf.DIR_DATA_GAPS, self.conf.FILE_DATA_GAPS), "w+") as out_file:
+            out_file.write(pd.DataFrame(data=data_dict).to_csv())

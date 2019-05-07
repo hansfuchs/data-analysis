@@ -17,6 +17,9 @@ class Config:
 
         self.FILE_UNIQUE_MACHINES: str = 'unique_machines.txt'
         self.FILE_DATA_GAPS: str = 'data_gaps.csv'
+        self.FILE_DATA_GAPS_BY_PREV: str = 'data_gaps_by_prev_state.csv'
+        self.FILE_DATA_GAPS_BY_NEXT: str = 'data_gaps_by_next_state.csv'
+        self.FILE_DATA_GAPS_BY_PREV_AND_NEXT: str = 'data_gaps_by_prev_and_next_state.csv'
 
         self.UNIQUE_MACHINES: List[str] = []
         with open(self.FILE_UNIQUE_MACHINES, 'r+') as file:
