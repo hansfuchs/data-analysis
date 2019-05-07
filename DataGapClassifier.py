@@ -126,7 +126,7 @@ class DataGapClassifier:
                     )
                 )
 
-        with open("log.txt", "w+") as f:
+        with open(join(self.conf.DIR_DATA_GAPS, self.conf.FILE_LOGGER), "w+") as f:
             for line in logger:
                 f.write(line + "\n")
 
@@ -135,6 +135,8 @@ class DataGapClassifier:
 
     def group_by_prev_state(self, df: pd.DataFrame):
         df = df.sort_values(by='PREV_STATE')
+        df = df.iloc[:, 1:]
+        df.index = [x for x in range(0, len(df.index))]
         with open(join(
                 self.conf.DIR_DATA_GAPS,
                 self.conf.FILE_DATA_GAPS_BY_PREV
@@ -145,6 +147,8 @@ class DataGapClassifier:
 
     def group_by_next_state(self, df: pd.DataFrame):
         df = df.sort_values(by='NEXT_STATE')
+        df = df.iloc[:, 1:]
+        df.index = [x for x in range(0, len(df.index))]
         with open(
             join(
                 self.conf.DIR_DATA_GAPS,
@@ -156,6 +160,8 @@ class DataGapClassifier:
 
     def group_by_prev_and_next_state(self, df: pd.DataFrame):
         df = df.sort_values(by=['PREV_STATE', 'NEXT_STATE'])
+        df = df.iloc[:, 1:]
+        df.index = [x for x in range(0, len(df.index))]
         with open(join(
                 self.conf.DIR_DATA_GAPS,
                 self.conf.FILE_DATA_GAPS_BY_PREV_AND_NEXT
@@ -182,7 +188,7 @@ class DataGapClassifier:
             'PREV_STATE': [],
             'NEXT_STATE': []
         }
-        with open('log.txt', 'r') as f:
+        with open(join(self.conf.DIR_DATA_GAPS, self.conf.FILE_LOGGER), 'r') as f:
             for line in f:
                 line_list: List[str] = line.split('-')
                 data_dict['MACHINE_NR'].append(line_list[0])

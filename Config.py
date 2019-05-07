@@ -16,6 +16,7 @@ class Config:
         self.DIR_DATA_GAPS: str = join(self.PATH_ROOT, 'data_gaps')
 
         self.FILE_UNIQUE_MACHINES: str = 'unique_machines.txt'
+        self.FILE_LOGGER: str = 'log.txt'
         self.FILE_DATA_GAPS: str = 'data_gaps.csv'
         self.FILE_DATA_GAPS_BY_PREV: str = 'data_gaps_by_prev_state.csv'
         self.FILE_DATA_GAPS_BY_NEXT: str = 'data_gaps_by_next_state.csv'
