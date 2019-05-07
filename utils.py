@@ -41,3 +41,10 @@ def string_to_date2(date_str: str) -> datetime.datetime:
         date_list[1],
         date_list[2]
     )
+
+
+def get_amount_of_days(datestr_1: str, datestr_2: str) -> int:
+    date1: datetime.datetime = string_to_date2(datestr_1)
+    date2: datetime.datetime = string_to_date2(datestr_2)
+    delta: datetime.timedelta = date2 - date1
+    return delta.days + 1
